@@ -119,7 +119,7 @@ function getDownloadLink(url) {
   let downloadLInk = null;
   $.ajax({
     async: false,
-    url: 'get_url.php',
+    url: 'marlon_getUrl.php',
     data: { url: url },
     method: 'POST',
     success: function (data) {
