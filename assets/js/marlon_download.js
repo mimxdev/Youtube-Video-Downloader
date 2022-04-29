@@ -1,90 +1,40 @@
 $('.loader').hide();
-// Check for the various File API support.
-if (window.File && window.FileReader && window.FileList && window.Blob) {
-  function showFile() {
-    var preview = document.getElementById('show-text');
-    var file = document.querySelector('input[type=file]').files[0];
-
-    var reader = new FileReader();
-
-    var textFile = /text.*/;
-
-    if (file.type.match(textFile)) {
-      reader.onload = function (event) {
-        preview.innerHTML = event.target.result;
-      };
-    }
-    reader.readAsText(file);
-  }
-} else {
-  Swal.fire({
-    title: 'Not Supported!',
-    icon: 'error',
-    confirmButtonColor: '#4a69bd',
-    confirmButtonText: 'OK',
-  });
-}
 
 $(document).ready(function () {
-  $('#inputTextFile').on('change', function () {
-    if (isText(this.files[0])) {
+  $('#urlTextArea').on('paste', function () {
+    setTimeout(function () {
+      $('#urlTextArea').prop('readonly', true);
+      $('#urlTextArea').blur();
       $('.loader').show();
-      showFile();
-
-      setTimeout(function () {
-        checkTextarea(true);
-      }, 2000);
-    } else {
-      Swal.fire({
-        title: 'Invalid File Type!',
-        text: 'Please select a text file only',
-        icon: 'error',
-        confirmButtonColor: '#4a69bd',
-        confirmButtonText: 'OK',
-      });
-      $('#inputTextFile').val(null);
-    }
-  });
-
-  $('#dlBtn').on('click', function () {
-    if ($('#urlTextArea').val() == '') {
-      Swal.fire({
-        title: 'ERROR',
-        text: 'URL field is empty',
-        icon: 'error',
-        confirmButtonColor: '#4a69bd',
-        confirmButtonText: 'OK',
-      });
-    } else {
-      $('.loader').show();
-
-      setTimeout(function () {
-        checkTextarea(false);
-      }, 2000);
-    }
+      checkTextarea();
+    }, 2000);
   });
 });
 
-function checkTextarea(file) {
-  let text = '';
-  if (file) {
-    text = $('#show-text').val();
-  } else {
-    text = $('#urlTextArea').val();
-  }
+function checkTextarea() {
+  let text = $('#urlTextArea').val();
   let url = text.split('\n');
   let n = 0;
   let count = 1;
+
   while (n < url.length) {
     let videoId = youtube_parser(url[n]);
-
     let directLink = getDownloadLink(url[n]) + '&title=' + getTitle(videoId);
-    $('#download-frame').attr('src', directLink);
-    console.log(count + '/' + url.length);
+
+    // $('#download-frame').attr('src', directLink);
+    if (url[n] != '') {
+      setTimeout(function () {
+        $('.video-container').append(
+          '<iframe src="' +
+            directLink +
+            '" frameborder="0" scrolling="no" hidden></iframe>'
+        );
+      }, 2000);
+    }
 
     if (count == url.length) {
-      $('#inputTextFile').val(null);
       $('#urlTextArea').val(null);
+      $('#urlTextArea').prop('readonly', false);
       $('.loader').fadeOut(300);
     }
 
@@ -116,19 +66,15 @@ function getTitle(videoId) {
 }
 
 function getDownloadLink(url) {
-  let downloadLInk = null;
+  let downloadLink = null;
   $.ajax({
     async: false,
     url: 'marlon_getUrl.php',
     data: { url: url },
     method: 'POST',
     success: function (data) {
-      downloadLInk = data;
+      downloadLink = data;
     },
   });
-  return downloadLInk;
-}
-
-function isText(file) {
-  return file['type'].split('/')[0] == 'text';
+  return downloadLink;
 }
